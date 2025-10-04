@@ -1,78 +1,170 @@
 
-# Tema
-Integración y análisis de datos de ventas y clientes usando Excel y Python en Visual Studio Code.
+# Documentación del Proyecto: Integración y análisis de datos de ventas
 
-# Problema
-Se requiere procesar y analizar datos de ventas, productos y clientes almacenados en archivos Excel para generar reportes y métricas. El entorno de desarrollo debe ser reproducible y alineado con las configuraciones del proyecto.
+> **Curso:** Fundamentos de Inteligencia Artificial — Trabajo en equipo  
+> **Repositorio local:** raíz con archivos `.xlsx` y configuración de VS Code
 
-# Solución
-- Usar Python para el procesamiento y análisis (pandas, openpyxl/xlrd según versión).
-- Desarrollar scripts y notebooks en Visual Studio Code con las extensiones de Python y Jupyter.
-- Mantener la configuración de editor en la carpeta [.vscode](.vscode/settings.json) y símbolos adicionales en [.vscode/excel-pq-symbols/excel-pq-symbols.json](.vscode/excel-pq-symbols/excel-pq-symbols.json).
-- Los archivos Excel base están en el repositorio local: [clientes.xlsx](clientes.xlsx), [detalle_ventas.xlsx](detalle_ventas.xlsx), [productos.xlsx](productos.xlsx), [ventas.xlsx](ventas.xlsx). La carpeta `.vscode` y los Excel originales provienen de la URL del drive: https://drive.google.com/drive/folders/1EHGn5ZIYNI5pXE53pbXxGiIDt-ecnPU8
+---
 
--------------------------------------
+## 1) Tema, problema y solución (vinculados a la base de datos)
 
-# Estructura
-- Raíz del proyecto:
-  - [documentacion.md](documentacion.md)
-  - [clientes.xlsx](clientes.xlsx)
-  - [detalle_ventas.xlsx](detalle_ventas.xlsx)
-  - [productos.xlsx](productos.xlsx)
-  - [ventas.xlsx](ventas.xlsx)
-  - .vscode/
-    - [.vscode/settings.json](.vscode/settings.json)
-    - [.vscode/excel-pq-symbols/excel-pq-symbols.json](.vscode/excel-pq-symbols/excel-pq-symbols.json)
+**Tema.** Integración y análisis de datos de ventas de una empresa a partir de cuatro fuentes Excel: `clientes.xlsx`, `productos.xlsx`, `ventas.xlsx` y `detalle_ventas.xlsx`.
 
-# Tipos
-- Archivos de datos: Excel (.xlsx)
-- Código: Python (.py) y Notebooks (.ipynb)
-- Configuración del editor: JSON (en `.vscode`)
+**Problema.** Los datos están dispersos en varios archivos Excel y se requiere: (a) unificar clientes, productos, ventas y sus detalles; (b) validar y limpiar campos; (c) obtener métricas (totales, promedios) y reportes reproducibles.
 
-# Escalado de la BD
-- Para volúmenes mayores: migrar a un almacén columnar (parquet) o base de datos relacional (Postgres).
-- Pipeline recomendado: ingestión -> limpieza (pandas) -> particionado por fecha/producto -> almacenamiento en parquet o BD.
-- Automatización: usar scripts programados (cron / task scheduler) o un job en Airflow/Prefect para procesos recurrentes.
+**Solución (resumen).**
+- Procesar con **Python (pandas)** y ejecutar en **Visual Studio Code** con extensiones de Python/Jupyter.
+- Cargar las cuatro tablas Excel, estandarizar columnas/fechas, y **unir** por claves (`cliente_id`, `producto_id`, `venta_id`).
+- Calcular métricas y exportar resultados a nuevos Excel o Parquet.  
 
---------------------------------------
+---
 
-# Información
-- Símbolos de Power Query incluidos en el proyecto:
-  - [`Excel.CurrentWorkbook`](.vscode/excel-pq-symbols/excel-pq-symbols.json)
-  - [`Documentation`](.vscode/excel-pq-symbols/excel-pq-symbols.json)
-  (ver [.vscode/excel-pq-symbols/excel-pq-symbols.json](.vscode/excel-pq-symbols/excel-pq-symbols.json) para detalles)
+## 2) Fuente, definición, estructura, tipos y escala (según clase 2)
 
-# Pasos (instalación y configuración)
-1. Instalar Python (recomendado: 3.10+).  
-2. Instalar Visual Studio Code.  
-3. Abrir el proyecto en VS Code.  
-4. Instalar extensiones:
-   - Python (ms-python.python)
-   - Jupyter (ms-toolsai.jupyter)
-5. Confirmar que la carpeta `.vscode` está presente y que [settings.json](.vscode/settings.json) apunta a los símbolos extras (opcional editar ruta).
-6. Descargar la carpeta y archivos Excel desde: https://drive.google.com/drive/folders/1EHGn5ZIYNI5pXE53pbXxGiIDt-ecnPU8 y colocarlos en la raíz del proyecto si aún no están.
-7. Crear y activar un entorno virtual:
-   - python -m venv .venv
-   - Windows: .venv\Scripts\activate
-   - Unix: source .venv/bin/activate
-8. Instalar dependencias:
-   - pip install pandas openpyxl jupyterlab
-9. Abrir o crear notebooks (.ipynb) o scripts (.py) para análisis en VS Code usando la extensión Jupyter.
+**Fuente de datos.**
+- Archivos Excel brindados por el docente:  
+  - `clientes.xlsx` — catálogo de clientes (id, nombre, segmento, ciudad, etc.).  
+  - `productos.xlsx` — catálogo de productos (id, nombre, categoría, precio unitario).  
+  - `ventas.xlsx` — encabezado de venta (venta_id, cliente_id, fecha, etc.).  
+  - `detalle_ventas.xlsx` — detalle de líneas (venta_id, producto_id, cantidad, precio, importe).
 
-# pseudocódigo
-- Cargar datos:
-  - clientes = pd.read_excel('clientes.xlsx')
-  - productos = pd.read_excel('productos.xlsx')
-  - ventas = pd.read_excel('ventas.xlsx')
-  - detalle = pd.read_excel('detalle_ventas.xlsx')
-- Limpiar y validar:
-  - normalizar columnas, convertir fechas, eliminar duplicados
-- Unir tablas:
-  - ventas_detalle = detalle.merge(ventas, on='venta_id').merge(productos, on='producto_id')
-  - ventas_completas = ventas_detalle.merge(clientes, on='cliente_id')
-- Agregar métricas:
-  - total_por_producto = ventas_completas.groupby('producto_id')['importe'].sum()
-  - top_clientes = ventas_completas.groupby('cliente_id')['importe'].sum().nlargest(10)
-- Exportar resultados:
-  - total_por_producto.to_excel('reportes/total_por_producto.xlsx')
+**Definición de tablas y relaciones.**
+- Relación 1:N entre `ventas` (encabezado) y `detalle_ventas` (líneas).
+- Dimensiones de **clientes** y **productos** referenciadas por claves foráneas en `ventas`/`detalle_ventas`.
+
+**Estructura del proyecto.**
+```
+/
+├─ clientes.xlsx
+├─ productos.xlsx
+├─ ventas.xlsx
+├─ detalle_ventas.xlsx
+├─ documentacion.md  
+└─ .vscode/
+   ├─ settings.json
+   └─ excel-pq-symbols.json
+```
+
+**Tipos de archivos.**
+- Datos: `.xlsx`
+- Código: `.py`, opcional `.ipynb`
+- Configuración/editor: `.json`
+
+
+---
+
+## 3) Pasos, pseudocódigo y diagrama de flujo
+
+> Objetivo: dejar listo el **entorno de trabajo** y los **datos** para iniciar el análisis con Python, **sin** implementar todavía el procesamiento.
+
+### 3.1) Prerrequisitos e instalación
+
+### Herramientas
+- **Sistema operativo**: Windows / macOS / Linux.
+- **Python 3.10+** (recomendado 3.11 o 3.12). Verificar versión:
+  ```bash
+  python --version   # o py --version en Windows
+  ```
+- **Visual Studio Code** con extensiones:
+  - *Python* (Microsoft)
+  - *Jupyter* (opcional, para notebooks)
+- **Git** (opcional, para versionar).
+- **Navegador** con acceso a **Google Drive** (para descargar los archivos base).
+
+### Crear entorno virtual e instalar librerías
+> Ejecutar estos comandos en una terminal (PowerShell, CMD, o Terminal de VS Code).
+```bash
+# 1) Crear y activar entorno
+python -m venv .venv
+# Windows PowerShell
+.\.venv\Scripts\Activate.ps1
+
+# 2) Actualizar pip e instalar librerías mínimas
+python -m pip install --upgrade pip
+pip install pandas numpy 
+```
+
+---
+
+### 3.2) Obtener los archivos del **Drive** del docente
+
+
+1. Abre el **enlace de la carpeta** o los **enlaces de cada archivo** que compartió el docente.
+2. En la parte superior, pulsa **Descargar**.
+3. Guarda los archivos **.xlsx** y los **.json** de configuración en tus carpetas locales:
+   - `clientes.xlsx`, `productos.xlsx`, `ventas.xlsx`, `detalle_ventas.xlsx` 
+   - `settings.json`, `excel-pq-symbols.json` → `.vscode/`
+
+---
+
+### 3.4) Pseudocódigo — Inicio del proyecto (sin programar lógica de análisis)
+
+```pseudo
+INICIO
+
+# A. Comprobar entorno
+SI (python NO instalado) -> instalar Python 3.11+
+SI (VS Code NO instalado) -> instalar VS Code y extensiones Python/Jupyter
+CREAR entorno virtual .venv
+ACTIVAR entorno virtual
+INSTALAR librerías: pandas, numpy
+
+# B. Preparar estructura
+COPIAR a .vscode: settings.json y excel-pq-symbols.json 
+
+# C. Obtener datos desde Google Drive
+SI (descarga manual) -> bajar archivos .xlsx y mover a la raiz del proyecto
+VERIFICAR que existan: clientes.xlsx, productos.xlsx, ventas.xlsx, detalle_ventas.xlsx
+
+# D. Validaciones mínimas (sin análisis todavía)
+ABRIR cada Excel para confirmar que se puede leer (p. ej., con Excel o Vista Previa)
+ACTUALIZAR documentacion.md con cualquier incidencia
+
+# E. Punto de control
+CONFIRMAR checklist:
+  - [ ] Entorno activo (.venv)
+  - [ ] Librerías instaladas
+  - [ ] Estructura de carpetas creada
+  - [ ] Archivos .xlsx presentes 
+  - [ ] Configuración VS Code en .vscode
+FIN
+```
+
+---
+
+### 5.1) Diagrama de flujo (preparación del entorno y datos)
+
+```mermaid
+flowchart TD
+    A[Inicio] --> B{Python 3.10+ instalado?}
+    B -- No --> B1[Instalar Python] --> C
+    B -- Sí --> C[Instalar VS Code + Extensiones]
+    C --> D[Crear venv y activar]
+    D --> E[Instalar pandas, numpy]
+    E --> F[Crear estructura de carpetas]
+    F --> G{Descarga desde Drive}
+    G -- Web --> H[Descargar manualmente y mover a raiz del proyecto]
+    H --> J[Colocar settings.json y excel-pq-symbols.json en .vscode]
+    I --> J
+    J --> K[Verificar archivos]
+    K --> L{¿Todo OK?}
+    L -- Sí --> M[Punto de control alcanzado]
+    L -- No --> N[Resolver incidencias y repetir verificación]
+    M --> O[Fin]
+    N --> K
+```
+
+---
+
+## 6) Checklist imprimible (rápida)
+- [ ] Python 3.10+ instalado (`python --version`).
+- [ ] VS Code + extensión **Python** (y **Jupyter** opcional).
+- [ ] Entorno virtual **.venv** activado.
+- [ ] `pip install pandas numpy ` ejecutado.
+- [ ] Estructura creada ( `.vscode`).
+- [ ] Archivos descargados desde Drive y ubicados.
+- [ ] Archivos de configuración dentro de `.vscode/`.
+
+---
+
 
