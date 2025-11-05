@@ -24,50 +24,72 @@ Ventas: Registro de ventas con fecha, cliente y medio de pago.
 
 # ESTRUCTURA DE DATOS
 # Clientes
-- id_cliente: Identificador único.
+- id_cliente: Identificador único del cliente.
 - nombre_cliente:  Nombre completo del cliente.
 - email: Correo electrónico.
 - ciudad: Ciudad de residencia.
 - fecha_alta: Fecha de alta del cliente.
 
 # Productos
-- id_producto: Identificador único.
+- id_producto: Identificador único del producto.
 - nombre_producto: Nombre del producto.
 - categoría: clasificación del producto.
 - precio_unitario: precio unitario de producto.
 
 # Ventas
-- id_venta: Identificador único.
-- fecha: Fecha de compra.
-- id_cliente: Relación con Cliente
-- medio_pago: Forma de pago
+- id_venta: Identificador único de la venta.
+- fecha: Fecha de la venta.
+- id_cliente: Relación con Cliente.
+- medio_pago: Forma de pago.
 
-# TIPOS DE DATOS
-# Clientes
-- id_cliente: INT
-- nombre_cliente: VARCHAR(100).
-- email: VARCHAR(100), UNIQUE.
-- ciudad: VARCHAR(50).
-- fecha_alta:  DATE.
+# Detalle_Ventas
+- id_venta: Identificador único de la venta.
+- id_producto: Identificador único del producto.
+- nombre_producto: Nombre del producto.
+- cantidad: Cantidad vendida.
+- precio_unitario: precio unitario de producto.
+- importe: importe de la venta (cantidad * precio_unitario).
 
-# Productos
-- id_producto: INT 
-- nombre_producto: VARCHAR(100).
-- categoria: VARCHAR(50).
-- precio_unitario: DECIMAL(10,2).
 
-# Ventas
-- id_venta: INT 
-- fecha: DATE
-- id_cliente: INT
-- medio_pago: VARCHAR(20).
+# TIPOS DE DATOS y ESCALA
 
-# ESCALA
-**Escala actual:**
-- ordinal, de texto
-- Clientes: decenas a cientos.
-- Productos: catálogo pequeño.
-- Ventas: cientos a miles de registros.
+
+# 📦 Productos (productos.csv)
+| Campo            | Tipo | Escala   |
+|------------------|------|----------|
+| id_producto      | int  | Nominal  |
+| nombre_producto  | str  | Nominal  |
+| categoria        | str  | Nominal  |
+| precio_unitario  | int  | Razón    |
+
+# 👥 Clientes (clientes.csv)
+| Campo            | Tipo | Escala    |
+|------------------|------|-----------|
+| id_cliente       | int  | Nominal   |
+| nombre_cliente   | str  | Nominal   |
+| email            | str  | Nominal   |
+| ciudad           | str  | Nominal   |
+| fecha_alta       | date | Intervalo |
+
+# 🧾 Ventas (ventas.csv)
+| Campo            | Tipo | Escala    |
+|------------------|------|-----------|
+| id_venta         | int  | Nominal   |
+| fecha            | date | Intervalo |
+| id_cliente       | int  | Nominal   |
+| nombre_cliente   | str  | Nominal   |
+| email            | str  | Nominal   |
+| medio_pago       | str  | Nominal   |
+
+# 💰 Detalle de Ventas (detalle_ventas.csv)
+| Campo             | Tipo | Escala  |
+|-------------------|------|---------|
+| id_venta          | int  | Nominal |
+| id_producto       | int  | Nominal |
+| nombre_producto   | str  | Nominal |
+| cantidad          | int  | Razón   |
+| precio_unitario   | int  | Razón   |
+| importe           | int  | Razón   |
 
 #Clientes puede crecer a miles, Productos a cientos y Ventas a millones.
 
@@ -113,6 +135,13 @@ ventas_por_ciudad = ventas_detalle.groupby("ciudad")["importe"].sum()
 
 #En caso no corra, validar nombre de tablas, por ejemplo: 
 print(ventas_detalle.columns.tolist())
+
+# SUGERENCIAS Y MEJORAS APLICADAS CON COPILOT
+
+1. Se consultaron que tipo de escala son los ids en una tabla.
+2. Se consulto como programar la parte interactiva para visualizar la documentación en python por secciones.
+3. Se consulto como visualizar los datos de tipo de dato y escala en una tabla en un archivo con formato .md.
+
 
 
 
